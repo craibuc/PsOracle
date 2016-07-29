@@ -1,2 +1,2 @@
 # PsOracle
-A PowerShell module to interact with Oracle
+A PowerShell module to interact with Oracle.
