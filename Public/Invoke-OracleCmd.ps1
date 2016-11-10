@@ -42,7 +42,16 @@ function Invoke-OracleCmd {
     )
 
     BEGIN {
-        Write-Debug "BEGIN"
+        Write-Debug "$($MyInvocation.MyCommand.Name)::BEGIN"
+
+        Write-Debug '-----PARAMS-----'
+        Write-Debug "Query: $Query"
+        Write-Debug "ServerInstance: $ServerInstance"
+        Write-Debug "Username: $Username"
+
+        Write-Debug '-----SESSION-----'
+        Write-Debug "ServerInstance: $($PSCmdlet.SessionState.PSVariable.Get('ServerInstance').Value)"
+        Write-Debug "Username: $($PSCmdlet.SessionState.PSVariable.Get('Username').Value)"
 
         $temp = $ErrorActionPreference  # save setting
         # $ErrorActionPreference = "Stop" # make all errors terminating
@@ -81,13 +90,9 @@ function Invoke-OracleCmd {
             $PlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
         }
 
-        # if ($Password) {
-        #     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
-        #     $PlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        # }
-
         $connectionString = "Data Source=$ServerInstance;User Id=$Username;Password=$PlainText;Integrated Security=no"
-        Write-Debug $connectionString
+        # remove password
+        Write-Debug $connectionString.Replace($PlainText,"*" * ($PlainText.Length))
 
         # load assembly
         [System.Reflection.Assembly]::LoadWithPartialName("System.Data.OracleClient") | Out-Null
@@ -129,7 +134,7 @@ function Invoke-OracleCmd {
         }
     }
     PROCESS {
-        Write-Debug "PROCESS"
+        Write-Debug "$($MyInvocation.MyCommand.Name)::PROCESS"
 
         try {
             # $ErrorActionPreference = "Stop"; #Make all errors terminating
@@ -167,7 +172,7 @@ function Invoke-OracleCmd {
         finally {}
     }
     END {
-        Write-Debug "END"
+        Write-Debug "$($MyInvocation.MyCommand.Name)::END"
 
         if ( $Connection ) {
             $Connection.Close()
