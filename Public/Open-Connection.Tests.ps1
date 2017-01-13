@@ -22,17 +22,17 @@ Describe "Open-Connection" {
         }
 
         # alternately, prompt for credentials
-        # $server=Read-Host 'Server'
-        # $user=Read-Host 'User'
-        # $password=Read-Host 'Password' -AsSecureString
-
         # $params = @{
-        #     ServerInstance=$Credentials.ServerInstance;
-        #     Username=$Credentials.Username;
-        #     # convert secure text to a SecureString object
-        #     Password = $Credentials.SecurePassword | ConvertTo-SecureString
+        #     ServerInstance=Read-Host 'Server'
+        #     Username=Read-Host 'User'
+        #     Password = Read-Host 'Password' -AsSecureString
         # }
 
+    }
+
+    BeforeEach { 
+        # ensure the connection is closed
+        Close-Connection 
     }
 
     Context "Valid credentials supplied" {
@@ -42,36 +42,30 @@ Describe "Open-Connection" {
             $actual = Open-Connection @params -Verbose
 
             # assert
-            $actual | Should Be $true
+            $actual | Should BeOfType System.Data.OracleClient.OracleConnection
         }
 
     }
 
     Context "Inalid credentials supplied" {
 
-        $user='invalid'
-        $password=ConvertTo-SecureString 'invalid' -AsPlainText -Force
+        $username='invalid_user'
+        $password=ConvertTo-SecureString 'invalid_password' -AsPlainText -Force
 
         It "Throws an exeption" {
-            # act
-            # $actual = Open-Connection $server $user $password -Verbose
-
             # act / assert
-            { Open-Connection $server $user $password -Verbose } | Should Throw
+            { Open-Connection $params.ServerInstance $username $password -Verbose } | Should Throw 'Invalid credentials'
         }
 
     }
 
     Context "Invalid server supplied" {
 
-        $server='invalid'
+        $serverInstance='invalid_server'
 
         It "Throws an exeption" {
-            # act
-            # $actual = Open-Connection $server $user $password -Verbose
-
             # act / assert
-            { Open-Connection $server $user $password -Verbose } | Should Throw
+            { Open-Connection $serverInstance $params.Username $params.Password -Verbose } | Should Throw 'Invalid server'
         }
 
     }

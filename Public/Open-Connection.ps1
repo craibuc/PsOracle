@@ -22,27 +22,31 @@
     Write-Debug $connectionString.Replace($PlainText,"*" * ($PlainText.Length))
 
     try {
-        Write-Verbose "Connecting to $ServerInstance"
-        $global:connection = New-Object System.Data.OracleClient.OracleConnection($connectionString)
-        $global:connection.Open()
-        $true
+        Write-Verbose "Connecting $Username to $ServerInstance"
+
+        # open it
+        $connection = New-Object System.Data.OracleClient.OracleConnection($connectionString)
+        $connection.Open()
+        # save in session
+        $global:connection = $connection
+        # return it
+        $connection
     }
     catch [System.Data.OracleClient.OracleException] {
+        # reset
+        $global:connection = $null
 
         switch ( $_.Exception.Code ) {
             {$_ -In 1005,1017 } {
                 # Write-Error -Message "Invalid credentials`n" -Exception $_ -ErrorId $ex.Exception.Code -Category AuthenticationError -TargetObject $connection
-                Throw 'Invalid credentials'
+                Throw 'Invalid credentials', $_
             }
             {$_ -In 12560,12154} {
                 # Write-Error  -Message "Invalid server`n" -Exception $_ -ErrorId $ex.Exception.Code -Category ConnectionError -TargetObject $connection
-                Throw 'Invalid server'
+                Throw 'Invalid server', $_
             }
         }
         
     }
-    catch {
-        Write-Error $_.Exception.Message
-        $false
-    }
+
 }
