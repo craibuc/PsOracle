@@ -31,13 +31,13 @@ function Invoke-OracleCmd {
         [string]$Query,
 
         # [Parameter(Position=1,Mandatory=$true)]
-        [string]$ServerInstance = $PSCmdlet.SessionState.PSVariable.Get('ServerInstance').Value,
+        [string]$ServerInstance, #= $PSCmdlet.SessionState.PSVariable.Get('ServerInstance').Value,
 
         # [Parameter(Position=2,Mandatory=$true)]
-        [string]$Username = $PSCmdlet.SessionState.PSVariable.Get('Username').Value,
+        [string]$Username, # = $PSCmdlet.SessionState.PSVariable.Get('Username').Value,
 
         # [Parameter(Position=3,Mandatory=$true)]
-        [SecureString]$Password = $PSCmdlet.SessionState.PSVariable.Get('Password').Value
+        [SecureString]$Password # = $PSCmdlet.SessionState.PSVariable.Get('Password').Value
 
     )
 
@@ -49,11 +49,13 @@ function Invoke-OracleCmd {
         Write-Debug "ServerInstance: $ServerInstance"
         Write-Debug "Username: $Username"
 
-        Write-Debug '-----SESSION-----'
-        Write-Debug "ServerInstance: $($PSCmdlet.SessionState.PSVariable.Get('ServerInstance').Value)"
-        Write-Debug "Username: $($PSCmdlet.SessionState.PSVariable.Get('Username').Value)"
+        if ( !$global:connection ) { Open-Connection }
 
-        $temp = $ErrorActionPreference  # save setting
+        # Write-Debug '-----SESSION-----'
+        # Write-Debug "ServerInstance: $($PSCmdlet.SessionState.PSVariable.Get('ServerInstance').Value)"
+        # Write-Debug "Username: $($PSCmdlet.SessionState.PSVariable.Get('Username').Value)"
+
+        # $temp = $ErrorActionPreference  # save setting
         # $ErrorActionPreference = "Stop" # make all errors terminating
 
         #
@@ -61,78 +63,78 @@ function Invoke-OracleCmd {
         #
 
         # ServerInstance
-        if (!$PSCmdlet.SessionState.PSVariable.Get('ServerInstance') -And !$ServerInstance) {
-            $ServerInstance = Read-Host "ServerInstance"
-        }
+        # if (!$PSCmdlet.SessionState.PSVariable.Get('ServerInstance') -And !$ServerInstance) {
+        #     $ServerInstance = Read-Host "ServerInstance"
+        # }
 
-        if ($ServerInstance) {
-            $PSCmdlet.SessionState.PSVariable.Set('ServerInstance',$ServerInstance)
-        }
+        # if ($ServerInstance) {
+        #     $PSCmdlet.SessionState.PSVariable.Set('ServerInstance',$ServerInstance)
+        # }
 
-        # Username
-        if (!$PSCmdlet.SessionState.PSVariable.Get('Username') -And !$Username) {
-            $Username = Read-Host "Username"
-        }
+        # # Username
+        # if (!$PSCmdlet.SessionState.PSVariable.Get('Username') -And !$Username) {
+        #     $Username = Read-Host "Username"
+        # }
 
-        if ($Username) {
-            $PSCmdlet.SessionState.PSVariable.Set('Username',$Username)
-        }
+        # if ($Username) {
+        #     $PSCmdlet.SessionState.PSVariable.Set('Username',$Username)
+        # }
 
-        # Password
-        if (!$PSCmdlet.SessionState.PSVariable.Get('Password') -And !$Password) {
-            $Password = Read-Host "Password" -AsSecureString
-        }
+        # # Password
+        # if (!$PSCmdlet.SessionState.PSVariable.Get('Password') -And !$Password) {
+        #     $Password = Read-Host "Password" -AsSecureString
+        # }
 
-        if ($Password) {
-            $PSCmdlet.SessionState.PSVariable.Set('Password',$Password)
+        # if ($Password) {
+        #     $PSCmdlet.SessionState.PSVariable.Set('Password',$Password)
 
-            $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
-            $PlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        }
+        #     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
+        #     $PlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        # }
 
-        $connectionString = "Data Source=$ServerInstance;User Id=$Username;Password=$PlainText;Integrated Security=no"
+        # $connectionString = "Data Source=$ServerInstance;User Id=$Username;Password=$PlainText;Integrated Security=no"
         # remove password
-        Write-Debug $connectionString.Replace($PlainText,"*" * ($PlainText.Length))
+        # Write-Debug $connectionString.Replace($PlainText,"*" * ($PlainText.Length))
 
         # load assembly
-        [System.Reflection.Assembly]::LoadWithPartialName("System.Data.OracleClient") | Out-Null
+        # [System.Reflection.Assembly]::LoadWithPartialName("System.Data.OracleClient") | Out-Null
         # [Reflection.Assembly]::LoadWithPartialName('Oracle.DataAccess') # | Out-Null
 
-        try {
-            Write-Verbose "Connecting to $ServerInstance"
-            $connection = New-Object System.Data.OracleClient.OracleConnection($connectionString)
-            $connection.Open()
-            # $connection = New-Object Oracle.DataAccess.Client.OracleConnection($connectionString)
-            # $connection.Open()
-        }
-        catch [System.Data.OracleClient.OracleException] {
+        # try {
+        #     Write-Verbose "Connecting to $ServerInstance"
+        #     $connection = New-Object System.Data.OracleClient.OracleConnection($connectionString)
+        #     $connection.Open()
+        #     # $connection = New-Object Oracle.DataAccess.Client.OracleConnection($connectionString)
+        #     # $connection.Open()
+        # }
+        # catch [System.Data.OracleClient.OracleException] {
 
-            $message = "$( $_.Exception.Message.Substring(0,$_.Exception.Message.Length-1) ) [$($_.Exception.Code)]"
-            Write-Host $message
+        #     $message = "$( $_.Exception.Message.Substring(0,$_.Exception.Message.Length-1) ) [$($_.Exception.Code)]"
+        #     Write-Host $message
 
-            switch ( $_.Exception.Code ) {
-                # {$_ -In 1005,1017 } {
-                #     # Write-Error -Message "Invalid credentials`n" -Exception $_ -ErrorId $ex.Exception.Code -Category AuthenticationError -TargetObject $connection
-                #     Throw 'Invalid credentials'
-                # }
-                # {$_ -In 12560,12154} {
-                #     # Write-Error  -Message "Invalid server`n" -Exception $_ -ErrorId $ex.Exception.Code -Category ConnectionError -TargetObject $connection
-                #     Throw 'Invalid server'
-                # }
-                default {
-                    Write-Error  -Message $message -Exception $_ -ErrorId $_.Exception.Code -Category NotSpecified -TargetObject $connection
-                    # Throw $_.Exception
-                }
-            }
+        #     switch ( $_.Exception.Code ) {
+        #         # {$_ -In 1005,1017 } {
+        #         #     # Write-Error -Message "Invalid credentials`n" -Exception $_ -ErrorId $ex.Exception.Code -Category AuthenticationError -TargetObject $connection
+        #         #     Throw 'Invalid credentials'
+        #         # }
+        #         # {$_ -In 12560,12154} {
+        #         #     # Write-Error  -Message "Invalid server`n" -Exception $_ -ErrorId $ex.Exception.Code -Category ConnectionError -TargetObject $connection
+        #         #     Throw 'Invalid server'
+        #         # }
+        #         default {
+        #             Write-Error  -Message $message -Exception $_ -ErrorId $_.Exception.Code -Category NotSpecified -TargetObject $connection
+        #             # Throw $_.Exception
+        #         }
+        #     }
 
-        }
-        catch {
-            Write-Error  -Message $_.Exception.Message -Exception $_ -ErrorId $_.Exception.Code -Category NotSpecified -TargetObject $connection
-        }
-        finally {
-            $ErrorActionPreference = $temp  # restore setting
-        }
-    }
+        # }
+        # catch {
+        #     Write-Error  -Message $_.Exception.Message -Exception $_ -ErrorId $_.Exception.Code -Category NotSpecified -TargetObject $connection
+        # }
+        # finally {
+        #     $ErrorActionPreference = $temp  # restore setting
+        # }
+    } # /Begin
     PROCESS {
         Write-Debug "$($MyInvocation.MyCommand.Name)::PROCESS"
 
@@ -140,7 +142,7 @@ function Invoke-OracleCmd {
             # $ErrorActionPreference = "Stop"; #Make all errors terminating
 
             Write-Verbose "Executing $Query"
-            $command = New-Object System.Data.OracleClient.OracleCommand($query, $connection)
+            $command = New-Object System.Data.OracleClient.OracleCommand($query, $global:connection)
             # $command = New-Object Oracle.DataAccess.Client.OracleCommand($Query,$connection)
 
             Write-Verbose "Filling DataSet"
@@ -174,10 +176,10 @@ function Invoke-OracleCmd {
     END {
         Write-Debug "$($MyInvocation.MyCommand.Name)::END"
 
-        if ( $Connection ) {
-            $Connection.Close()
-            $Connection.Dispose()
-        }
+        # if ( $Connection ) {
+        #     $Connection.Close()
+        #     $Connection.Dispose()
+        # }
 
         # $ErrorActionPreference = $temp; #Reset the error action pref to default
     }
