@@ -29,18 +29,31 @@ Describe "Invoke-OracleCmd" {
         Close-Connection
     }
 
-    Context 'Open connection' {
+    Context 'Valid SQL' {
 
         # arrange
         $Query='SELECT sysdate AS NOW FROM dual'
         $expected = (Get-Date).ToString('MM/dd/yyyy HH:mm:ss')
 
-        It "Returns the current date/time" {
+        It "Returns a DataRow containing the expected data" {
             # act
-            $actual = Invoke-OracleCmd -Query $Query -Verbose | Select-Object -Expand NOW
+            $actual = Invoke-OracleCmd -Query $Query -Verbose # | Select-Object -Expand NOW
 
             # assert
-            $actual | Should Be $expected
+            $actual | Should BeOfType System.Data.DataRow
+            $actual | Select-Object -Expand NOW | Should Be $expected
+        }
+
+    }
+
+    Context 'Invalid SQL' {
+
+        # arrange
+        $Query='SELECT foobar'
+
+        It "Generates a non-terminating exception" {
+            # act / assert
+            { Invoke-OracleCmd -Query $Query -Verbose } | Should Throw 'Invalid SQL statement'
         }
 
     }
