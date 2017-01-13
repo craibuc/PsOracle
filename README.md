@@ -13,15 +13,20 @@ A PowerShell module to interact with Oracle.
 PS> Import-Module PsOracle
 
 # Execute query; allow function to prompt for password
-PS> Invoke-OracleCmd -Query 'SELECT sysdate FROM dual' -ServerInstance 'PROD' -Username 'SCOTT'
-Password: ******
+PS> Invoke-OracleCmd -Query 'SELECT sysdate FROM dual'
+cmdlet Open-Connection at command pipeline position 1
+Supply values for the following parameters:
+ServerInstance: prod
+Username: scott
+Password: *******
+True
 
 SYSDATE
 -------
-11/1/2016 4:02:32 PM
+1/13/2017 5:54:03 AM
 ~~~
 
 # Personnel
 
 - Author: Craig Buchanan
-- Contributors: 
+- Contributors: ?
