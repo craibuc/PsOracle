@@ -63,7 +63,7 @@ Describe "Open-Connection" {
 
         $serverInstance='invalid_server'
 
-        It "Throws an exeption" {
+        It -skip "Throws an exeption" {
             # act / assert
             { Open-Connection $serverInstance $params.Username $params.Password -Verbose } | Should Throw 'Invalid server'
         }

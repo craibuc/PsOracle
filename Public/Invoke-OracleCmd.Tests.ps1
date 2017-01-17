@@ -51,11 +51,46 @@ Describe "Invoke-OracleCmd" {
         # arrange
         $Query='SELECT foobar'
 
-        It "Generates a non-terminating exception" {
-            # act / assert
-            { Invoke-OracleCmd -Query $Query -Verbose } | Should Throw 'Invalid SQL statement'
+        # It "Generates a non-terminating exception" {
+        #     # act / assert
+        #     { Invoke-OracleCmd -Query $Query -Verbose } | Should Throw 'Invalid SQL statement'
+        # }
+
+        # https://github.com/pester/Pester/issues/366
+        It 'Generates a non-terminating exception 2' {
+            Invoke-OracleCmd -Query $Query -Verbose -ErrorVariable err
+            $err.Count | Should Not Be 0
+            $err[1].Exception.Message | Should Be "Invalid SQL statement"
         }
 
+    }
+
+    Context 'Queries supplied via pipeline' {
+
+        # arrange
+        $Queries='SELECT sysdate FROM dual','SELECT sysdate+1 TOMORROW FROM dual'
+
+        It 'Creates multiple recordsets' {
+            $actual = $Queries | Invoke-OracleCmd -Verbose
+
+            $actual.Count | Should Be 2
+            $actual[0] | Should BeOfType System.Data.DataRow
+            $actual[1] | Should BeOfType System.Data.DataRow
+        }
+    }
+
+    Context 'Invalid query supplied in the midst of valid queries' {
+
+        # arrange
+        $Queries='SELECT sysdate FROM dual','SELECT foo','SELECT sysdate+1 TOMORROW FROM dual'
+
+        It 'Creates multiple recordsets, ignoring the invalid query' {
+            $actual = $Queries | Invoke-OracleCmd -Verbose
+
+            $actual.Count | Should Be 2
+            $actual[0] | Should BeOfType System.Data.DataRow
+            $actual[1] | Should BeOfType System.Data.DataRow
+        }
     }
 
 }

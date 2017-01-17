@@ -28,7 +28,7 @@ function Invoke-OracleCmd {
     [CmdletBinding()]
     param (
         [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true)]
-        [string]$Query,
+        [string[]]$Query,
 
         # TODO: handle these?
         [string]$ServerInstance,
@@ -53,32 +53,38 @@ function Invoke-OracleCmd {
     PROCESS {
         Write-Debug "$($MyInvocation.MyCommand.Name)::PROCESS"
 
-        try {
-            Write-Verbose "Executing $Query"
-            $command = New-Object System.Data.OracleClient.OracleCommand($query, $global:connection)
-            # $command = New-Object Oracle.DataAccess.Client.OracleCommand($Query,$connection)
+        foreach ($Q In $Query) {
 
-            Write-Verbose "Filling DataSet"
-            $dataSet = New-Object System.Data.DataSet
-            (New-Object System.Data.OracleClient.OracleDataAdapter($command)).Fill($dataSet) | Out-Null
-            # (New-Object Oracle.DataAccess.Client.OracleDataAdapter($command)).Fill($dataSet) | Out-Null
+            try {
 
-            # return the results
-            $dataSet.Tables[0]
+                Write-Verbose "Executing $Query"
+                $command = New-Object System.Data.OracleClient.OracleCommand($query, $global:connection)
+                # $command = New-Object Oracle.DataAccess.Client.OracleCommand($Query,$connection)
 
-        } # /try
-        catch [System.Data.OracleClient.OracleException] {
-            
-            Write-Debug "* ERROR CODE: $($_.Exception.Code) **"
+                Write-Verbose "Filling DataSet"
+                $dataSet = New-Object System.Data.DataSet
+                (New-Object System.Data.OracleClient.OracleDataAdapter($command)).Fill($dataSet) | Out-Null
+                # (New-Object Oracle.DataAccess.Client.OracleDataAdapter($command)).Fill($dataSet) | Out-Null
 
-            switch ( $_.Exception.Code ) {
-                {$_ -Eq 923 } {
-                    # Write-Error -Message "Invalid credentials`n" -Exception $_ -ErrorId $ex.Exception.Code -Category AuthenticationError -TargetObject $connection
-                    Throw 'Invalid SQL statement', $_
+                # return the results
+                $dataSet.Tables[0]
+
+            } # /try
+            catch [System.Data.OracleClient.OracleException] {
+                
+                Write-Debug "* ERROR CODE: $($_.Exception.Code) **"
+
+                switch ( $_.Exception.Code ) {
+                    {$_ -Eq 923 } {
+                        Write-Error -Message "Invalid SQL statement" # -Exception $_ -ErrorId $ex.Exception.Code -Category InvalidData -TargetObject $command
+                        # Throw 'Invalid SQL statement', $_
+                    }
                 }
-            }
-            
-        } # /catch        
+                
+            } # /catch
+      
+        } # /foreach
+      
     } # /PROCESS
     END {  Write-Debug "$($MyInvocation.MyCommand.Name)::END" }
 
