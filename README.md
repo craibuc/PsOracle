@@ -4,7 +4,7 @@ A PowerShell module to interact with Oracle.
 #Installation
 - Download the most-recent [release](https://github.com/craibuc/PsOracle/releases)
 - Decompress archive
-- Move to C:\Users\<username>\Documents\WindowsPowerShell\Modules
+- Move to C:\Users\\[username]\Documents\WindowsPowerShell\Modules
 
 # Usage
 
@@ -19,7 +19,6 @@ Supply values for the following parameters:
 ServerInstance: prod
 Username: scott
 Password: *******
-True
 
 SYSDATE
 -------
