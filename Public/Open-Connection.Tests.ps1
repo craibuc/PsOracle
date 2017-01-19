@@ -12,7 +12,6 @@ Describe "Open-Connection" {
         Import-LocalizedData -FileName 'com.oracle.credentials.psd1' -BindingVariable Credentials
         Write-Debug $Credentials.ServerInstance
         Write-Debug $Credentials.Username
-        Write-Debug $Credentials.SecurePassword
 
         $params = @{
             ServerInstance=$Credentials.ServerInstance;
@@ -30,9 +29,9 @@ Describe "Open-Connection" {
 
     }
 
-    BeforeEach { 
+    BeforeEach {
         # ensure the connection is closed
-        Close-Connection 
+        Close-Connection
     }
 
     Context "Valid credentials supplied" {
@@ -69,5 +68,5 @@ Describe "Open-Connection" {
         }
 
     }
-    
+
 }

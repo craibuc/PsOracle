@@ -10,7 +10,6 @@ Describe "Close-Connection" {
         Import-LocalizedData -FileName 'com.oracle.credentials.psd1' -BindingVariable Credentials
         Write-Debug $Credentials.ServerInstance
         Write-Debug $Credentials.Username
-        Write-Debug $Credentials.SecurePassword
 
         $params = @{
             ServerInstance=$Credentials.ServerInstance;
@@ -26,7 +25,7 @@ Describe "Close-Connection" {
     It "Closes an connection" {
         # act
         $actual = Close-Connection -Verbose
-        
+
         # assert
         $global:connection | Should BeNullOrEmpty
     }
