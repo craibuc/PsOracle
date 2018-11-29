@@ -1,1 +1,4 @@
 com.oracle.credentials.psd1
+
+# keep empty Private folder
+!/Private/.keep
